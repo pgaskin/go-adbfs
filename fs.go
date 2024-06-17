@@ -417,12 +417,12 @@ func (f *fsFile) Read(p []byte) (int, error) {
 		if err != nil {
 			f.c.delConn(f.conn)
 			f.conn = nil
-			f.er = err
-			return 0, &fs.PathError{
+			f.er = &fs.PathError{
 				Op:   "read",
 				Path: f.name,
-				Err:  f.er,
+				Err:  err,
 			}
+			return 0, f.er
 		}
 
 		// check if we don't have any chunks left
@@ -430,11 +430,7 @@ func (f *fsFile) Read(p []byte) (int, error) {
 			f.c.putConn(f.conn)
 			f.conn = nil
 			f.er = io.EOF
-			return 0, &fs.PathError{
-				Op:   "read",
-				Path: f.name,
-				Err:  f.er,
-			}
+			return 0, f.er
 		}
 
 		// read a chunk
@@ -442,12 +438,12 @@ func (f *fsFile) Read(p []byte) (int, error) {
 		if _, err := io.ReadFull(f.conn, f.buf.AvailableBuffer()[:st.Size]); err != nil {
 			f.c.delConn(f.conn)
 			f.conn = nil
-			f.er = err
-			return 0, &fs.PathError{
+			f.er = &fs.PathError{
 				Op:   "read",
 				Path: f.name,
-				Err:  f.er,
+				Err:  err,
 			}
+			return 0, f.er
 		} else {
 			f.buf.Write(f.buf.AvailableBuffer()[:st.Size])
 		}
