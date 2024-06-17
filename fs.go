@@ -138,7 +138,8 @@ func (c *FS) Close() error {
 	defer c.connMu.Unlock()
 
 	for conn := range c.conn {
-		c.delConn(conn)
+		conn.Close()
+		delete(c.conn, conn)
 	}
 	c.conn = nil
 
